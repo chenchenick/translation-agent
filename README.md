@@ -1,3 +1,6 @@
+Using Ollama + llama3.2 to translate text
+Need to install ollama and running llama3.2 on local machine
+
 # Translation Agent: Agentic translation using reflection workflow
 
 This is a Python demonstration of a reflection agentic workflow for machine translation. The main steps are:

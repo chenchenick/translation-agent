@@ -1,6 +1,7 @@
 cache_dir
 .env
 .venv
+venv
 __pycache__
 poetry.lock
 floresp-v2.0-rc.3

@@ -1,7 +1,8 @@
 import os
 from typing import List, Union
+import requests
+import json
 
-import openai
 import tiktoken
 from dotenv import load_dotenv
 from icecream import ic
@@ -9,7 +10,8 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 
 load_dotenv()  # read local .env file
-client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 
 MAX_TOKENS_PER_CHUNK = (
     1000  # if text is more than this many tokens, we'll break it up into
@@ -20,19 +22,19 @@ MAX_TOKENS_PER_CHUNK = (
 def get_completion(
     prompt: str,
     system_message: str = "You are a helpful assistant.",
-    model: str = "gpt-4-turbo",
+    model: str = "llama3.2",
     temperature: float = 0.3,
     json_mode: bool = False,
 ) -> Union[str, dict]:
     """
-        Generate a completion using the OpenAI API.
+    Generate a completion using the Ollama API.
 
     Args:
         prompt (str): The user's prompt or query.
         system_message (str, optional): The system message to set the context for the assistant.
             Defaults to "You are a helpful assistant.".
-        model (str, optional): The name of the OpenAI model to use for generating the completion.
-            Defaults to "gpt-4-turbo".
+        model (str, optional): The name of the Ollama model to use for generating the completion.
+            Defaults to "llama3.2".
         temperature (float, optional): The sampling temperature for controlling the randomness of the generated text.
             Defaults to 0.3.
         json_mode (bool, optional): Whether to return the response in JSON format.
@@ -43,30 +45,37 @@ def get_completion(
             If json_mode is True, returns the complete API response as a dictionary.
             If json_mode is False, returns the generated text as a string.
     """
-
+    url = f"{OLLAMA_BASE_URL}/api/generate"
+    
+    headers = {
+        "Content-Type": "application/json"
+    }
+    
+    data = {
+        "model": model,
+        "prompt": f"{system_message}\n\nUser: {prompt}\nAssistant:",
+        "stream": False,
+        "options": {
+            "temperature": temperature
+        }
+    }
+    
     if json_mode:
-        response = client.chat.completions.create(
-            model=model,
-            temperature=temperature,
-            top_p=1,
-            response_format={"type": "json_object"},
-            messages=[
-                {"role": "system", "content": system_message},
-                {"role": "user", "content": prompt},
-            ],
-        )
-        return response.choices[0].message.content
+        data["prompt"] += " Please respond in JSON format."
+    
+    response = requests.post(url, headers=headers, data=json.dumps(data))
+    
+    if response.status_code == 200:
+        result = response.json()
+        if json_mode:
+            try:
+                return json.loads(result['response'])
+            except json.JSONDecodeError:
+                return {"error": "Failed to parse JSON response"}
+        else:
+            return result['response']
     else:
-        response = client.chat.completions.create(
-            model=model,
-            temperature=temperature,
-            top_p=1,
-            messages=[
-                {"role": "system", "content": system_message},
-                {"role": "user", "content": prompt},
-            ],
-        )
-        return response.choices[0].message.content
+        return {"error": f"API request failed with status code {response.status_code}"}
 
 
 def one_chunk_initial_translation(
