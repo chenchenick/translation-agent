@@ -1,26 +1,19 @@
 import os
+import sys
 
-import translation_agent as ta
+# Add the project root directory to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, project_root)
 
+from srt_translator import translate_srt
 
 if __name__ == "__main__":
-    source_lang, target_lang, country = "English", "Spanish", "Mexico"
-
-    relative_path = "sample-texts/sample-short1.txt"
+    source_lang, target_lang, country = "English", "Chinese", "China"
     script_dir = os.path.dirname(os.path.abspath(__file__))
-
-    full_path = os.path.join(script_dir, relative_path)
-
-    with open(full_path, encoding="utf-8") as file:
-        source_text = file.read()
-
-    print(f"Source text:\n\n{source_text}\n------------\n")
-
-    translation = ta.translate(
-        source_lang=source_lang,
-        target_lang=target_lang,
-        source_text=source_text,
-        country=country,
-    )
-
-    print(f"Translation:\n\n{translation}")
+    input_srt = os.path.join(script_dir, "sample-texts", "sample.en.srt")
+    output_srt = os.path.join(script_dir, "translations", f"chinese_sample.en.srt")
+    
+    # Ensure the translations directory exists
+    os.makedirs(os.path.dirname(output_srt), exist_ok=True)
+    
+    translate_srt(input_srt, output_srt, source_lang, target_lang, country)
