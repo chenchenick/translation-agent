@@ -686,37 +686,17 @@ def translate(
 
         return "".join(translation_2_chunks)
 
-def translate_simple(
-    source_lang: str, target_lang: str, source_text: str
-) -> str:
-
+def translate_simple(source_lang: str, target_lang: str, source_text: str) -> str:
     system_message = f"You are an expert linguist, specializing in translation from {source_lang} to {target_lang}."
 
-    translation_prompt = f"""This is an {source_lang} to {target_lang} translation, please provide the {target_lang} translation for this text. \
-Do not provide any explanations or text apart from the translation. 
-Nothing except the formmated translation should be outputted. 
-only translate texts between <text> and </text>. 
-all other text should keep as it is in output. 
-translate line by line. do not miss any line. 
+    translation_prompt = f"""This is an {source_lang} to {target_lang} translation. Please provide the {target_lang} translation for the XML text below. 
+Translate line by line, preserving the XML structure. Do not miss any line or add any explanations.
+Translate only the content within the <text> tags. Do not translate the <sequence> content.
+Here's the text to translate:
 
-same source text format is as below.
-<captions>
-  <caption>
-    <sequence>1</sequence>
-    <text>Airport.As summer approaches, and due to the effects of the lingering weak yen,</text>
-  </caption>
-  ...
-</captions>
+{source_text}
 
-same target text format is as below.
-<captions>
-  <caption>
-    <sequence>1</sequence>
-    <text>機場。隨著夏季的到來，由於日元的持續疲軟，</text>
-  </caption>
-  ...
-</captions>
-"""
+Provide only the translated XML structure as output, nothing else."""
 
     translation = get_completion(translation_prompt, system_message=system_message)
 

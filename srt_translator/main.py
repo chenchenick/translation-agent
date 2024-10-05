@@ -44,7 +44,7 @@ def translate_texts_in_batches(xml_str: str, source_lang: str, target_lang: str,
             source_lang=source_lang,
             target_lang=target_lang,
             source_text=batch_xml_str
-        )
+        ).strip()  # Add .strip() here to remove any leading/trailing whitespace
         
         try:
             translated_batch_root = ET.fromstring(translated_batch)
@@ -79,13 +79,7 @@ def translate_srt(input_srt_path, output_srt_path, source_lang, target_lang, cou
     translated_xml = translate_texts_in_batches(xml_str, source_lang, target_lang, country, output_dir=output_dir)
     save_step_result("3_translated_texts", translated_xml, output_dir)
     
-    translated_root = ET.fromstring(translated_xml)
-    translated_captions = [
-        {'sequence': caption.find('sequence').text, 'text': caption.find('text').text}
-        for caption in translated_root
-    ]
-    
-    aligned_captions = align_translations(captions, translated_captions)
+    aligned_captions = align_translations(captions, translated_xml)
     save_step_result("4_aligned_captions", json.dumps(aligned_captions, ensure_ascii=False, indent=2), output_dir)
     
     export_to_srt(aligned_captions, output_srt_path)

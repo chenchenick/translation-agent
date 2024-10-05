@@ -34,6 +34,7 @@ def extract_texts(captions):
     xml_str = minidom.parseString(ET.tostring(root)).toprettyxml(indent="  ")
     return xml_str
 
+# The rest of the functions remain unchanged
 def combine_texts(texts):
     return ' '.join(texts)
 
