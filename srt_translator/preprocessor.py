@@ -1,5 +1,7 @@
 import nltk
 import ssl
+import xml.etree.ElementTree as ET
+from xml.dom import minidom
 
 try:
     _create_unverified_https_context = ssl._create_unverified_context
@@ -21,7 +23,16 @@ def download_nltk_data():
 download_nltk_data()
 
 def extract_texts(captions):
-    return [caption['text'] for caption in captions]
+    root = ET.Element("captions")
+    for caption in captions:
+        caption_elem = ET.SubElement(root, "caption")
+        sequence_elem = ET.SubElement(caption_elem, "sequence")
+        sequence_elem.text = str(caption['sequence'])
+        text_elem = ET.SubElement(caption_elem, "text")
+        text_elem.text = caption['text']
+    
+    xml_str = minidom.parseString(ET.tostring(root)).toprettyxml(indent="  ")
+    return xml_str
 
 def combine_texts(texts):
     return ' '.join(texts)
